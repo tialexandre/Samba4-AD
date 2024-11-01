@@ -19,16 +19,16 @@ for user in $(samba-tool user list); do
     last_logon=$(samba-tool user show $user | grep "lastLogon:" | awk '{print $2}')
 
     # Verifica se o usuário tem um registro de último login
-    if [[ -n "$last_logon" ]]; then
+    if [ -n "$last_logon" ]; then
         # Converte o lastLogon para o formato Unix e compara com a data limite
         last_logon_epoch=$(convert_lastlogon_to_epoch $last_logon)
 
-        if [[ $last_logon_epoch -lt $cutoff_date ]]; then
+        if [ $last_logon_epoch -lt $cutoff_date ]; then
             # Desativa o usuário se estiver inativo por mais do que o período definido
             samba-tool user disable $user
             echo "Usuário $user desativado por inatividade."
         else
-            echo "Usuário $user está ativo ou dentro do período de login recente."
+        #    echo "Usuário $user está ativo ou dentro do período de login recente."
         fi
     else
         # Desativa o usuário que não possui data de login registrada
@@ -70,7 +70,11 @@ for user in $(samba-tool user list); do
         fi
     else
         # Desativa o usuário que não possui data de login registrada
+   	if [ "$user" != "Administrador" ]; then
+	if [ "$user" != "tiagocpd" ]; then	
         samba-tool user disable $user
+	fi
+	fi
         echo "Usuário $user não possui data de login registrada e foi desativado."
     fi
 done
