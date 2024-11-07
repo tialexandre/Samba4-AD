@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configurações
-OU_FILTER="OU=0-Vetor,DC=grupo,DC=open"  # Altere para o caminho completo e exato da OU
+OU_FILTER="OU=0-Brizza,DC=grupo,DC=open"  # Altere para o caminho completo e exato da OU
 DAYS_INACTIVE=30
 DATE_LIMIT=$(date -d "$DAYS_INACTIVE days ago" +%Y-%m-%d)
 
@@ -28,8 +28,9 @@ for user in $(samba-tool user list); do
     	user_status=$(samba-tool user show $user | grep "userAccountControl:" | awk '{print $2}')
     
     	# Se userAccountControl indicar que o usuário está desativado, pule para o próximo usuário
-    	if [ "$user_status" -eq 514 ]; then
-       		# echo "Usuário $user já está desativado. Nenhuma ação necessária."
+       if [ "$user_status" -eq 514 ] || [ "$user_status" -eq 66050 ]; then
+	 
+		echo "Usuário $user já está desativado. Nenhuma ação necessária."
         	continue
     	fi
 
@@ -49,6 +50,7 @@ for user in $(samba-tool user list); do
         	    samba-tool user disable $user
 	            echo "Usuário $user não possui data de login registrada e foi desativado."
 	        fi
+
        fi			
     fi
 done
