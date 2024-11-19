@@ -1,0 +1,44 @@
+Um guia passo a passo também pode ser visto aqui:
+https://youtu.be/daaX67Ovegk
+
+Este é um script que permite que um servidor Rocky (RHEL) (9.x) se torne um servidor AD/DC (Active Directory/Domain Controller) usando o Samba compilado diretamente do código fonte. Sim, existem outras alternativas que usam pacotes RPM prontos, mas por que não construir você mesmo?
+Adotei esta abordagem porque o script não modifica nenhum binário já existente, garantindo assim uma origem confiável.
+
+Pré-requisitos
+Instale o Rocky do zero.
+Certifique-se de que o servidor possui um IP estático (caso não tenha, o instalador irá orientá-lo para configurá-lo).
+Não é necessário instalar nada adicional – apenas uma instalação mínima e limpa. O instalador cuidará do resto.
+O Script fará o seguinte:
+Validar se você possui um IP estático configurado. Se não tiver, o script solicitará a configuração.
+Configurar o SElinux.
+Adicionar as permissões necessárias no firewall.
+Ativar os repositórios Rocky necessários para a compilação:
+EPEL
+CRB
+Instalar os requisitos necessários para compilar o Samba:
+Modificar o Chrony para apontar para 2.rocky.pool.ntp.org.
+Baixar e instalar a última versão do Samba para Rocky (pacote .src.rpm).
+Solicitar as informações para a provisão do domínio.
+Adicionar o serviço do Samba e habilitá-lo.
+Limpar todos os arquivos de instalação para manter o sistema organizado.
+Realizar testes básicos de Active Directory diretamente no console:
+Kerberos
+Kerberos UDP (NS)
+LDAP (NS)
+Login anônimo
+Login autenticado
+Instalar um script de monitoramento que compara a versão compilada do Samba com a versão mais recente disponível e alerta se uma atualização for necessária.
+Atualizar o pacote .src.rpm para a versão mais recente.
+Fornecer instruções de “próximos passos” para administração do Samba:
+Sugerir a criação de uma zona reversa a partir do comando de linha, com base na topologia.
+Fornecer exemplos para complexidade de senha, histórico, etc.
+Instruções para criação de usuário padrão no AD.
+Parece ótimo! Como faço para obter o script?
+Instalação
+Consulte o arquivo EASY_INSTALL.
+
+Instalação
+Instale o Rocky Minimal:
+https://rockylinux.org/download/
+Certifique-se de especificar o nome do domínio que deseja usar para o AD.
+Após a instalação com GUI: Basta copiar e colar as seguintes linhas no terminal do Rocky.

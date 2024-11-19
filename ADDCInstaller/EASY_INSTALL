@@ -1,0 +1,5 @@
+# Instalação do Ubuntu Server Minimal
+# Certifique-se de especificar o nome do domínio que você deseja usar para o AD.
+# Após a instalação da interface de linha de comando, copie e cole a seguinte linha no terminal do Ubuntu ou em um terminal SSH remoto (recomendado):
+
+apt update && apt -y install wget && cd /root && bash <(wget -qO- https://raw.githubusercontent.com/fumatchu/RADS/main/DC-Installer.sh)

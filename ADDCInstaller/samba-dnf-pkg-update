@@ -1,0 +1,81 @@
+#!/bin/bash
+# samba-apt-pkg-update
+user=$(whoami)
+DNSSERVER=1.1.1.1
+IP=$(hostname -I | awk '{print $1}')
+INTERFACE=$(ip -o -4 route show to default | awk '{print $5}')
+# Verificação de permissões do usuário
+if [ "$user" != "root" ]; then
+   echo "${RED}Este programa deve ser executado como root ${TEXTRESET}"
+   echo "Saindo"
+   exit
+else
+   echo "Executando o programa"
+fi
+
+# Obtendo versão local e versão do repositório de samba
+aptlocal=$(dpkg -s samba | grep Version | awk '{print $2}')
+aptremote=$(apt-cache policy samba | grep Candidate | awk '{print $2}')
+
+cat <<EOF
+Esta utilidade atualizará sua versão compilada do Samba para uma versão mais recente
+
+A versão local atual no sistema é:
+$aptlocal
+
+E a versão no repositório upstream é:
+$aptremote
+
+Este processo irá:
+        - Remover pacotes locais
+        - Baixar o novo código-fonte do Samba
+        - Compilar o pacote de origem
+        - Atualizar o Samba para a nova versão, incluindo dependências
+EOF
+
+while true; do
+   read -p "Deseja atualizar o sistema agora? (s/n) " yn
+   case $yn in
+   [sS])
+      # Remover todos os pacotes antigos
+      rm -rf /root/.samba/*.deb
+
+      # Usar DNS externo caso o AD esteja fora
+      nmcli con mod "$INTERFACE" ipv4.dns "$DNSSERVER"
+      systemctl restart NetworkManager
+
+      # Baixar o código-fonte do Samba
+      apt -y build-dep samba
+      apt -y source samba
+      cd samba-* || exit
+
+      # Compilar e instalar pacotes Debian (.deb)
+      dpkg-buildpackage -uc -us
+      cd .. || exit
+      mkdir -p /root/.samba
+      mv *.deb /root/.samba
+
+      # Atualizar Samba a partir dos novos pacotes
+      dpkg -i /root/.samba/*.deb
+
+      # Resetar o MOTD (Mensagem do Dia)
+      > /etc/motd
+
+      # Restaurar o DNS para o servidor AD
+      nmcli con mod "$INTERFACE" ipv4.dns "$IP"
+      systemctl restart NetworkManager
+
+      # Habilitar e iniciar o serviço Samba
+      systemctl enable smbd
+      systemctl start smbd
+
+      break
+      ;;
+   [nN])
+      echo "Saindo..."
+      exit
+      ;;
+   *) echo "Resposta inválida" ;;
+   esac
+done
+exit 1

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# apt_smb_mon
+# Script de monitoramento que compara os pacotes Samba instalados no sistema com a versão mais recente disponível no repositório upstream.
+# Se uma atualização estiver disponível, uma mensagem será adicionada ao MOTD para alertar o usuário root a executar "samba-apt-pkg-update" manualmente.
+
+# Atualiza a lista de pacotes disponíveis no cache do apt
+apt update
+
+# Obtém a versão instalada do Samba e a versão disponível no repositório
+local_version=$(dpkg -s samba | grep '^Version:' | awk '{print $2}')
+remote_version=$(apt-cache policy samba | grep 'Candidate:' | awk '{print $2}')
+
+# Compara as versões local e remota
+if [ "$local_version" == "$remote_version" ]; then
+    logger -s "apt-smb-mon reports no changes needed - Repositories are in sync" 2>>/var/log/apt-smb-mon.log
+else
+    cat <<EOF >/etc/motd
+    *********************************************
+                  ATENÇÃO!
+    *********************************************
+apt_smb_mon detectou uma diferença entre a versão instalada
+do Samba e a versão disponível no repositório upstream.
+Provavelmente, isso significa que uma nova versão do Samba está disponível.
+
+Recomenda-se executar o comando samba-apt-pkg-update.
+EOF
+    logger -s "apt-smb-mon reports changes - Repositories are NOT in sync. Review and run samba-apt-pkg-update" 2>>/var/log/apt-smb-mon.log
+fi
+exit
